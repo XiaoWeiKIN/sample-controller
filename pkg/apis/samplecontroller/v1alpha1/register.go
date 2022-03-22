@@ -20,8 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-
-	samplecontroller "k8s.io/sample-controller/pkg/apis/samplecontroller"
+	"xiaowei.com/sample-controller/pkg/apis/samplecontroller"
 )
 
 // SchemeGroupVersion is group version used to register these objects
