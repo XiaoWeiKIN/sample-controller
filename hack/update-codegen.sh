@@ -25,6 +25,8 @@ echo ${SCRIPT_ROOT}
 # --output-base    because this script should also be able to run inside the vendor dir of
 #                  k8s.io/kubernetes. The output-base is needed for the generators to output into the vendor dir
 #                  instead of the $GOPATH directly. For normal projects this can be dropped.
+# --output-base 根目录
+# xiaowei.com/sample-controller/pkg/generated 为go moudle path
 bash "${CODEGEN_PKG}"/generate-groups.sh "deepcopy,client,informer,lister" \
   xiaowei.com/sample-controller/pkg/generated xiaowei.com/sample-controller/pkg/apis \
   samplecontroller:v1alpha1 \
