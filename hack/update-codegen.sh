@@ -28,7 +28,7 @@ echo ${SCRIPT_ROOT}
 bash "${CODEGEN_PKG}"/generate-groups.sh "deepcopy,client,informer,lister" \
   xiaowei.com/sample-controller/pkg/generated xiaowei.com/sample-controller/pkg/apis \
   samplecontroller:v1alpha1 \
-  --output-base "D:\\" \
+  --output-base "$(dirname "${BASH_SOURCE[0]}")/../../.." \
   --go-header-file "${SCRIPT_ROOT}"/hack/boilerplate.go.txt
 
 # To use your own boilerplate text append:
