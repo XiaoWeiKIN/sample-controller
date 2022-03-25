@@ -110,10 +110,15 @@ func NewController(
 	}
 
 	klog.Info("Setting up event handlers")
-	// Set up an event handler for when Foo resources change
+	// 注册事件处理器来监听Foo资源的创建、更新和删除
 	fooInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: controller.enqueueFoo,
 		UpdateFunc: func(old, new interface{}) {
+			oldFoo := old.(*samplev1alpha1.Foo)
+			newFoo := new.(*samplev1alpha1.Foo)
+			if oldFoo.ResourceVersion == newFoo.ResourceVersion {
+				return
+			}
 			controller.enqueueFoo(new)
 		},
 	})
@@ -146,7 +151,9 @@ func NewController(
 // is closed, at which point it will shutdown the workqueue and wait for
 // workers to finish processing their current work items.
 func (c *Controller) Run(workers int, stopCh <-chan struct{}) error {
+	// don't let panics crash the process
 	defer utilruntime.HandleCrash()
+	// make sure the work queue is shutdown which will trigger workers to end
 	defer c.workqueue.ShutDown()
 
 	// Start the informer factories to begin populating the informer caches
@@ -329,9 +336,8 @@ func (c *Controller) updateFooStatus(foo *samplev1alpha1.Foo, deployment *appsv1
 	return err
 }
 
-// enqueueFoo takes a Foo resource and converts it into a namespace/name
-// string which is then put onto the work queue. This method should *not* be
-// passed resources of any type other than Foo.
+// enqueueFoo 接受 Foo 资源并将其转换为 <namespace>/<name> 的字符串，然后将其放到工作队列中。
+// 这个方法不应该传递除 Foo 之外的任何类型的资源。
 func (c *Controller) enqueueFoo(obj interface{}) {
 	var key string
 	var err error
