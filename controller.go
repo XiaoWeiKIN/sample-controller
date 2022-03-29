@@ -203,6 +203,7 @@ func (c *Controller) processNextWorkItem() bool {
 		// not call Forget if a transient error occurs, instead the item is
 		// put back on the workqueue and attempted again after a back-off
 		// period.
+		// 你总是需要告诉队列你已经完成了一项工作
 		defer c.workqueue.Done(obj)
 		var key string
 		var ok bool
@@ -215,6 +216,7 @@ func (c *Controller) processNextWorkItem() bool {
 			// As the item in the workqueue is actually invalid, we call
 			// Forget here else we'd go into a loop of attempting to
 			// process a work item that is invalid.
+			// 告诉工作队列处理无效的对象
 			c.workqueue.Forget(obj)
 			utilruntime.HandleError(fmt.Errorf("expected string in workqueue but got %#v", obj))
 			return nil
@@ -244,6 +246,7 @@ func (c *Controller) processNextWorkItem() bool {
 // syncHandler compares the actual state with the desired, and attempts to
 // converge the two. It then updates the Status block of the Foo resource
 // with the current status of the resource.
+// syncHandler比较实际状态和期望状态，并尝试将两者收敛。然后用资源的当前状态更新Foo资源的Status块。
 func (c *Controller) syncHandler(key string) error {
 	// Convert the namespace/name string into a distinct namespace and name
 	namespace, name, err := cache.SplitMetaNamespaceKey(key)
@@ -275,6 +278,7 @@ func (c *Controller) syncHandler(key string) error {
 	}
 
 	// Get the deployment with the name specified in Foo.spec
+	// 使用Foo.spec中指定的名称获取 deployment
 	deployment, err := c.deploymentsLister.Deployments(foo.Namespace).Get(deploymentName)
 	// If the resource doesn't exist, we'll create it
 	if errors.IsNotFound(err) {
@@ -326,6 +330,9 @@ func (c *Controller) updateFooStatus(foo *samplev1alpha1.Foo, deployment *appsv1
 	// NEVER modify objects from the store. It's a read-only, local cache.
 	// You can use DeepCopy() to make a deep copy of original object and modify this copy
 	// Or create a copy manually for better performance
+	// 永远不要修改存储中的对象。它是只读的本地缓存。
+	// 可以使用DeepCopy()创建原始对象的深度副本，并修改该副本
+	// 或者手动创建一个副本以获得更好的性能
 	fooCopy := foo.DeepCopy()
 	fooCopy.Status.AvailableReplicas = deployment.Status.AvailableReplicas
 	// If the CustomResourceSubresources feature gate is not enabled,
@@ -373,6 +380,7 @@ func (c *Controller) handleObject(obj interface{}) {
 	if ownerRef := metav1.GetControllerOf(object); ownerRef != nil {
 		// If this object is not owned by a Foo, we should not do anything more
 		// with it.
+		// 如果这个deployment属主不是Foo资源，我们不做任何处理
 		if ownerRef.Kind != "Foo" {
 			return
 		}
@@ -382,7 +390,7 @@ func (c *Controller) handleObject(obj interface{}) {
 			klog.V(4).Infof("ignoring orphaned object '%s/%s' of foo '%s'", object.GetNamespace(), object.GetName(), ownerRef.Name)
 			return
 		}
-
+		// 对foo资源进行排队处理
 		c.enqueueFoo(foo)
 		return
 	}
@@ -396,6 +404,7 @@ func newDeployment(foo *samplev1alpha1.Foo) *appsv1.Deployment {
 		"app":        "nginx",
 		"controller": foo.Name,
 	}
+	// 设置 deployment的属主为 foo
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      foo.Spec.DeploymentName,
